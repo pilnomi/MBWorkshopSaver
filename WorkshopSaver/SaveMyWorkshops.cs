@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Configuration;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
@@ -96,6 +97,27 @@ namespace WorkshopSaver
                         refreshWorkshops();
                     }));
                 */
+
+                Configuration config = null;
+                string showtextmessage = "true";
+                string textmessage = "WorkshopSaver: Saved {0} workshop(s)!";
+
+                string exeConfigPath = this.GetType().Assembly.Location;
+                try
+                {
+                    config = ConfigurationManager.OpenExeConfiguration(exeConfigPath);
+                }
+                catch (Exception ex)
+                {
+                    //handle errror here.. means DLL has no sattelite configuration file.
+                }
+
+                if (config != null)
+                {
+                    showtextmessage = GetAppSetting(config, "ShowTextMessage");
+                    textmessage = GetAppSetting(config, "TextMessageOnWarDeclared");
+                }
+
                 CampaignEvents.WarDeclared.AddNonSerializedListener(this, new Action<IFaction, IFaction>(
                     (faction1, faction2) =>
                     {
@@ -120,9 +142,28 @@ namespace WorkshopSaver
                             }
                         }
                         */
-                        InformationManager.DisplayMessage(new InformationMessage("WorkshopSaver: Saved " + workshopsSaved.Count.ToString() + " workshop(s)!"));
+                        bool b = false;
+                        bool.TryParse(showtextmessage, out b);
+                        if (b)
+                        {
+                            InformationManager.DisplayMessage(new InformationMessage(
+                                string.Format(textmessage, workshopsSaved.Count)
+                            )); //"WorkshopSaver: Saved " + workshopsSaved.Count.ToString() + " workshop(s)!"));;
+                        }
                         workshopsSaved = new List<Workshop>();
                     }));
+            }
+
+            string GetAppSetting(Configuration config, string key)
+            {
+                KeyValueConfigurationElement element = config.AppSettings.Settings[key];
+                if (element != null)
+                {
+                    string value = element.Value;
+                    if (!string.IsNullOrEmpty(value))
+                        return value;
+                }
+                return string.Empty;
             }
         }
 
