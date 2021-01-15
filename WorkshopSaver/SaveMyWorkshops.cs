@@ -58,9 +58,10 @@ namespace WorkshopSaver
           Workshop workshop,
           Hero newOwner,
           WorkshopType workshopType,
-          TextObject name,
           int capital,
-          bool upgradable)
+          bool upgradable,
+          TextObject customName
+            )
         {
             if (!workshopsSaved.Contains(workshop))
                 workshopsSaved.Add(workshop);
@@ -68,36 +69,12 @@ namespace WorkshopSaver
 
         public class workshopworker : CampaignBehaviorBase
         {
-            //public List<WorkshopOwners> workshoplist;
             public override void SyncData(IDataStore dataStore)
             {
-                //dataStore.SyncData("test", ref workshoplist);
             }
-            /*
 
-            public void refreshWorkshops()
-            {
-                workshoplist = new List<WorkshopOwners>();
-                Hero myhero = Hero.MainHero;
-                IReadOnlyList<Workshop> mylist = myhero.OwnedWorkshops;
-                
-                for (int i = 0; i < mylist.Count; i++)
-                    workshoplist.Add(new WorkshopOwners(mylist[i], mylist[i].Owner, mylist[i].WorkshopType, mylist[i].Capital));
-            }
-            */
             public override void RegisterEvents()
             {
-                //refreshWorkshops();
-                /*
-                CampaignEvents.HeroOrPartyTradedGold.AddNonSerializedListener(this, new Action<(Hero, PartyBase), (Hero, PartyBase), (int, string), bool>(
-                    (s, t, a, b) => 
-                    {
-                        //needed a way to keep workshops up to date if they are bought and sold
-                        //seems safe to assume if money changed hands, then any change in workshop ownership is intentional
-                        refreshWorkshops();
-                    }));
-                */
-
                 Configuration config = null;
                 string showtextmessage = "true";
                 string textmessage = "WorkshopSaver: Saved {0} workshop(s)!";
@@ -121,34 +98,18 @@ namespace WorkshopSaver
                 CampaignEvents.WarDeclared.AddNonSerializedListener(this, new Action<IFaction, IFaction>(
                     (faction1, faction2) =>
                     {
-                        //string faction1name = faction1.Name.ToString();
-                        //string faction2name = faction2.Name.ToString();
-                        /*
-                        int workshopsSaved = 0;
-                        for (int i = 0; i < workshoplist.Count; i++)
+                        if (Hero.MainHero.MapFaction == faction1 ||
+                            Hero.MainHero.MapFaction == faction2
+                        )
                         {
-                            if (workshoplist[i].workshop.Owner != workshoplist[i].hero)
+                            bool b = false;
+                            bool.TryParse(showtextmessage, out b);
+                            if (b)
                             {
-                                
-                                ChangeOwnerOfWorkshopAction.ApplyByWarDeclaration(
-                                    workshoplist[i].workshop,
-                                    workshoplist[i].hero,
-                                    workshoplist[i].workshoptype,
-                                    workshoplist[i].workshop.Name,
-                                    workshoplist[i].capital,
-                                    workshoplist[i].workshop.Upgradable);
-                                
-                                workshopsSaved++;
+                                InformationManager.DisplayMessage(new InformationMessage(
+                                    string.Format(textmessage, workshopsSaved.Count)
+                                )); 
                             }
-                        }
-                        */
-                        bool b = false;
-                        bool.TryParse(showtextmessage, out b);
-                        if (b)
-                        {
-                            InformationManager.DisplayMessage(new InformationMessage(
-                                string.Format(textmessage, workshopsSaved.Count)
-                            )); //"WorkshopSaver: Saved " + workshopsSaved.Count.ToString() + " workshop(s)!"));;
                         }
                         workshopsSaved = new List<Workshop>();
                     }));
